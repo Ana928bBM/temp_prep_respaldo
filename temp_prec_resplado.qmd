@@ -1,0 +1,99 @@
+---
+title: "Relación de temperatura y precipitación en México"
+author: "Bardomiano Martínez Ana C. Valentina Ruiz Soto."
+format: pdf
+editor: visual
+---
+
+**Introducción**
+
+El monitoreo de variables meteorológicas tiene gran relevancia en la gestión de recursos hídricos, a partir de la identificación patrones en variables como la temperatura y precipitación se pueden desarrollar estrategias de prevención y adaptación ante eventos climáticos extremos como sequías, inundaciones, olas de calor, entre otros. Este tipo de análisis puede ser aplicado a sectores como la agricultura, turismo, investigación de la variabilidad climática, y estudios ecológicos.
+
+La cantidad de precipitación y la temperatura son variables que se incluyen cotidianamente en los pronósticos del tiempo, esta investigación busca comprobar si la relación entre ellas se mantiene a una escala temporal de meses y años.
+
+**Fuente de datos**
+
+Resúmenes Mensuales de Temperaturas y Lluvia. (s. f.). Recuperado 24 de febrero de 2025, de
+
+*https://smn.conagua.gob.mx/es/climatologia/temperaturas-y-lluvias/resumenes-mensuales-de-temperaturas-y-lluvias*
+
+En este portal se descargó una muestra de datos correspondientes a los meses de noviembre, enero, marzo y mayo para los años de 2016, 2020, y 2024. Esta fuente se consideró adecuada para el estudio dado que, al ser un repositorio institucional, se trata de una fuente confiable, actualizada y de excelente calidad ya que son examinadas previamente a su publicación por expertos en el área.
+
+**Pregunta de investigación**
+
+¿Qué tan relacionada está la temperatura mensual con la cantidad de precipitación mensual en México?
+
+```{r}
+#Primera descarga y visualización
+Datos <- read.csv("datos_enero_noviembre.csv")
+head(Datos)
+```
+
+```{r}
+#Limpieza de datos
+Datos2 <- na.omit(Datos)
+
+#Exploración de datos
+head(Datos2)  
+```
+
+```{r}
+#Descripción de los datos
+str(Datos2) 
+```
+
+```{r}
+#Se hace un resumen estadístico de las variables
+summary(Datos2)
+```
+
+```{r}
+#Verificar que la variable dependiente e independiente son de tipo númerico para realizar el modelo de regresión lineal
+
+str(Datos2)
+
+```
+
+```{r}
+#Realizar el modelo de regresión lineal tomando a lluvia como variable dependiente de la temperatura
+modelo_datos <- lm(Datos2$LLUVIA_mm ~ Datos2$TEMPERATURA_C)
+summary(modelo_datos)
+```
+
+```{r}
+plot(Datos2$TEMPERATURA_C, Datos2$LLUVIA_mm, main = "Relación entre la temperatura y lluvia", xlab = "Temperatura_°C", ylab = "Lluvia_mm", pch = 19, col = "blue")
+
+```
+
+En este punto notamos que los grados de libertad del error son mucho mayores a los de los datos, además de que gráficamente las variables de temperatura y cantidad de precipitación no tenían una relación lineal.
+
+Para descartar que esta información era debida a nuestra cantidad de datos, se decidió ampliar la base de datos para incluir todos los promedios mensuales nacionales desde 2015 a 2024.
+
+A continuación se presenta la aplicación del modelo de regresión lineal para la nueva base de datos.
+
+```{r}
+#Se carga la segunda base de datos y se explora su estructura
+promedios <- read_excel("Base2_lluvia_temperatura.xlsx")
+str(promedios)
+
+```
+
+```{r}
+#Visualización gráfica
+plot(promedios$Temperatura_C, promedios$Precipitacion_mm, main = "Relación entre la temperatura y cantidad de lluvias entre 2015 y 2024", xlab = "Temperatura_°C", ylab = "Lluvia_mm", pch = 19, col = "blue")
+```
+
+```{r}
+#Aplicación del modelo de regresión lineal simple. Resumen de los coeficientes calculados
+modelo2 <- lm(promedios$Precipitacion_mm ~ promedios$Temperatura_C)
+
+summary(modelo2)
+```
+
+------------------------------------------------------------------------
+
+**Interpretación**
+
+Según la pendiente dada por el resumen del modelo, por cada grado que aumenta la temperatura se incrementa la precipitación en 10.08 mm.
+
+El valor de p es mucho menor que 0.5, por lo que el modelo es confiable. Dado que describe la realidad en un 50.62 % no se recomienda usarlo para pronósticos pero sí para análisis de variabilidad climática (a lo largo de décadas), para comparar con registros de otros países. Dado que maneja pocas variables, también puede ser un recurso de fácil interpretación para el sector agrícola y turístico.
